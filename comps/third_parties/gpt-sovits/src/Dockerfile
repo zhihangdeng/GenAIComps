@@ -28,14 +28,15 @@ ENV LANG=C.UTF-8
 # Clone source repo
 RUN git clone --depth=1 --branch openai_compat --single-branch https://github.com/Spycsh/GPT-SoVITS.git
 
-RUN pip install --no-cache-dir --upgrade pip setuptools && \
+ARG uvpip='uv pip install --system --no-cache-dir'
+RUN pip install --no-cache-dir --upgrade pip setuptools uv && \
     if [ ${ARCH} = "cpu" ]; then \
-      pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r GPT-SoVITS/requirements.txt; \
+      $uvpip --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match -r GPT-SoVITS/requirements.txt; \
     else \
-      pip install --no-cache-dir -r GPT-SoVITS/requirements.txt; \
+      $uvpip -r GPT-SoVITS/requirements.txt; \
     fi
 
-RUN python -m nltk.downloader averaged_perceptron_tagger_eng cmudict && \
+RUN python -m nltk.downloader averaged_perceptron_tagger averaged_perceptron_tagger_eng cmudict && \
     mv /root/nltk_data /home/user/ && \
     mv GPT-SoVITS /home/user/
 
@@ -45,5 +46,8 @@ RUN chown -R user /home/user/
 
 USER user
 WORKDIR /home/user/GPT-SoVITS
+
+# air gapped support
+RUN curl -sLJO https://github.com/intel/intel-extension-for-transformers/raw/refs/heads/main/intel_extension_for_transformers/neural_chat/assets/audio/welcome_cn.wav
 
 ENTRYPOINT ["bash", "start.sh"]
