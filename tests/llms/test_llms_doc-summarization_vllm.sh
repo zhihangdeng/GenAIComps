@@ -30,8 +30,9 @@ function build_docker_images() {
     else
         echo "opea/vllm built successful"
     fi
-
     cd $WORKPATH
+    rm -fr vllm
+
     dockerfile_name="comps/llms/src/doc-summarization/$1"
     docker build --no-cache -t ${REGISTRY:-opea}/llm-docsum:${TAG:-latest} --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -f "$dockerfile_name" .
     if [ $? -ne 0 ]; then
